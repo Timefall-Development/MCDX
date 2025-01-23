@@ -1,0 +1,35 @@
+{
+    "schemaVersion": 1,
+    "id": "mcdx",
+    "version": "${version}",
+    "name": "MCDX: A Library",
+    "description": "A library for the MCDX Suite of Mods.",
+    "authors": [
+        "Timefall Development"
+    ],
+    "contact": {
+        "homepage": "https://fabricmc.net/",
+        "sources": "https://github.com/FabricMC/fabric-example-mod"
+    },
+    "license": "Timefall Development License 1.2",
+    "icon": "icon.png",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "dev.timefall.mcdx.McdxFabric"
+        ]
+    },
+    "mixins": [
+        "mcdx.mixins.json",
+        "mcdx.fabric.mixins.json"
+    ],
+    "depends": {
+        "fabricloader": ">=0.16.2",
+        "fabric-api": "*",
+        "minecraft": "~1.21"
+    },
+    "suggests": {
+        "another-mod": "*"
+    }
+}
+  
