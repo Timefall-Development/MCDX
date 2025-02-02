@@ -16,15 +16,15 @@ public class CleanlinessHelper {
 	@SuppressWarnings("deprecation")
 	public static final Random random = Random.createThreadSafe();
 
-	public static boolean percentToOccur (int chance) {
+	public static boolean percentToOccur(int chance) {
 		return random.nextInt(100) < chance;
 	}
 
-	public static void playCenteredSound (LivingEntity center, SoundEvent soundEvent, float volume, float pitch) {
+	public static void playCenteredSound(LivingEntity center, SoundEvent soundEvent, float volume, float pitch) {
 		playCenteredSound(center, soundEvent, SoundCategory.PLAYERS, volume, pitch);
 	}
 
-	public static void playCenteredSound (LivingEntity center, SoundEvent soundEvent, SoundCategory soundCategory, float volume, float pitch) {
+	public static void playCenteredSound(LivingEntity center, SoundEvent soundEvent, SoundCategory soundCategory, float volume, float pitch) {
 		center.getWorld().playSound(null,
 				center.getX(), center.getY(), center.getZ(),
 				soundEvent, soundCategory,

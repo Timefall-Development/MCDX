@@ -7,6 +7,7 @@
 package dev.timefall.mcdx.api;
 
 import dev.timefall.mcdx.configs.AoeExclusionType;
+import dev.timefall.mcdx.configs.McdxCoreConfig;
 import dev.timefall.mcdx.interfaces.IExclusiveAOECloud;
 import net.minecraft.entity.AreaEffectCloudEntity;
 import net.minecraft.entity.LivingEntity;
@@ -20,10 +21,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.UnaryOperator;
 
 public class AOECloudHelper {
 
@@ -53,21 +52,6 @@ public class AOECloudHelper {
         user.getWorld().spawnEntity(areaEffectCloudEntity);
     }
 
-    //Regen Arrow
-    public static void spawnRegenCloudAtPos(LivingEntity user, boolean arrow, BlockPos blockPos, int amplifier, int duration) {
-        int inGroundMitigator = arrow ? 1 : 0;
-        AreaEffectCloudEntity areaEffectCloudEntity = new AreaEffectCloudEntity(
-                user.getWorld(), blockPos.getX(), blockPos.getY() + inGroundMitigator, blockPos.getZ());
-        areaEffectCloudEntity.setOwner(user);
-        areaEffectCloudEntity.setRadius(5.0F);
-        areaEffectCloudEntity.setRadiusOnUse(-0.5F);
-        areaEffectCloudEntity.setWaitTime(10);
-        areaEffectCloudEntity.setDuration(60);
-        StatusEffectInstance regeneration = new StatusEffectInstance(StatusEffects.REGENERATION, duration, amplifier);
-        areaEffectCloudEntity.addEffect(regeneration);
-        user.getWorld().spawnEntity(areaEffectCloudEntity);
-    }
-
     public static void spawnStatusEffectCloud(LivingEntity owner, BlockPos blockPos, float radius, int duration, StatusEffectInstance... statusEffectInstances) {
         AreaEffectCloudEntity aoeCloudEntity = new AreaEffectCloudEntity(owner.getWorld(), blockPos.getX(), blockPos.getY() + 1, blockPos.getZ());
         aoeCloudEntity.setOwner(owner);
@@ -89,15 +73,58 @@ public class AOECloudHelper {
         attacker.getWorld().spawnEntity(areaEffectCloudEntity);
     }
 
+    //Regen Arrow
+    public static void spawnRegenCloudAtPos(LivingEntity user, boolean arrow, BlockPos blockPos, int amplifier, int duration) {
+        int inGroundMitigator = arrow ? 1 : 0;
+        AreaEffectCloudEntity areaEffectCloudEntity = new AreaEffectCloudEntity(
+                user.getWorld(), blockPos.getX(), blockPos.getY() + inGroundMitigator, blockPos.getZ());
+        areaEffectCloudEntity.setOwner(user);
+        areaEffectCloudEntity.setRadius(5.0F);
+        areaEffectCloudEntity.setRadiusOnUse(-0.5F);
+        areaEffectCloudEntity.setWaitTime(10);
+        areaEffectCloudEntity.setDuration(60);
+        StatusEffectInstance regeneration = new StatusEffectInstance(StatusEffects.REGENERATION, duration, amplifier);
+        areaEffectCloudEntity.addEffect(regeneration);
+        user.getWorld().spawnEntity(areaEffectCloudEntity);
+    }
+
+    public static AoeBuilder buildAoeCloud() {
+        return new AoeBuilder();
+    }
+
+    public static AoeBuilder builder = AOECloudHelper.buildAoeCloud()
+                                            .radius(5f)
+                                            .radiusOnUse(-0.5f)
+                                            .waitTime(10)
+                                            .duration(60)
+                                            .setExclusions(McdxCoreConfig.INSTANCE.aoeExclusions)
+                                            .addStatus(StatusEffects.REGENERATION, 60, 1);
+
+    public void CoolAoeExample(LivingEntity user, boolean arrow, BlockPos blockPos, int amplifier, int duration) {
+        BlockPos finalPos = arrow ? blockPos.up() : blockPos;
+        builder.setStatus(StatusEffects.REGENERATION, duration, amplifier);
+        builder.applyExclusions(list -> {
+            list.remove(AoeExclusionType.SELF);
+            return list;
+        });
+        builder.build(user, finalPos);
+    }
+
+
+
     public static class AoeBuilder {
         private float cloudRadius = 3f;
         private float cloudRadiusOnUse = 0f;
         private float cloudRadiusGrowth = 0f;
         private int cloudWaitTime = 20;
         private int cloudDuration = 600;
-        ParticleEffect particle = null;
+        ParticleEffect particleEffect = null;
         private List<StatusHolder> statuses = new ArrayList<>();
-        private Set<AoeExclusionType> exclusionTypes = new HashSet<>();
+        private List<AoeExclusionType> exclusionTypes = new ArrayList<>();
+
+        AoeBuilder() {}
+
+        ///////////////////
 
         public AoeBuilder radius(float cloudRadius) {
             this.cloudRadius = cloudRadius;
@@ -124,6 +151,39 @@ public class AOECloudHelper {
             return this;
         }
 
+        public AoeBuilder particleType(ParticleEffect particleEffect) {
+            this.particleEffect = particleEffect;
+            return this;
+        }
+
+        public AoeBuilder addStatus(RegistryEntry<StatusEffect> statusEffect, int duration, int amplifier) {
+            this.statuses.add(new StatusHolder(statusEffect, duration, amplifier));
+            return this;
+        }
+
+        public AoeBuilder setStatus(RegistryEntry<StatusEffect> statusEffect, int duration, int amplifier) {
+            this.statuses.clear();
+            this.statuses.add(new StatusHolder(statusEffect, duration, amplifier));
+            return this;
+        }
+
+        public AoeBuilder addExclusion(AoeExclusionType exclusion) {
+            this.exclusionTypes.add(exclusion);
+            return this;
+        }
+
+        public AoeBuilder setExclusions(Collection<AoeExclusionType> exclusions) {
+            this.exclusionTypes.clear();
+            this.exclusionTypes.addAll(exclusions);
+            return this;
+        }
+
+        public AoeBuilder applyExclusions(UnaryOperator<List<AoeExclusionType>> operations) {
+            this.exclusionTypes = operations.apply(this.exclusionTypes);
+            return this;
+        }
+
+        //////////////////////
 
         public void build(LivingEntity user, Vec3d position) {
             AreaEffectCloudEntity areaEffectCloudEntity = new AreaEffectCloudEntity(user.getWorld(), position.x, position.y, position.z);
@@ -133,8 +193,8 @@ public class AOECloudHelper {
             areaEffectCloudEntity.setRadiusGrowth(cloudRadiusGrowth);
             areaEffectCloudEntity.setWaitTime(cloudWaitTime);
             areaEffectCloudEntity.setDuration(cloudDuration);
-            if (particle != null) {
-                areaEffectCloudEntity.setParticleType(particle);
+            if (particleEffect != null) {
+                areaEffectCloudEntity.setParticleType(particleEffect);
             }
             if (!statuses.isEmpty()) {
                 for (StatusHolder holder: statuses) {
@@ -142,7 +202,7 @@ public class AOECloudHelper {
                 }
             }
             if (!exclusionTypes.isEmpty()) {
-                ((IExclusiveAOECloud) areaEffectCloudEntity).mcdx$setExclusions(exclusionTypes);
+                ((IExclusiveAOECloud) areaEffectCloudEntity).mcdx$setExclusions(new HashSet<>(exclusionTypes));
             }
             user.getWorld().spawnEntity(areaEffectCloudEntity);
         }

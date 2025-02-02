@@ -14,4 +14,10 @@ public interface IMcdxEnchantedArrow {
     int mcdx$getEnchantmentLevel(RegistryKey<Enchantment> enchantment);
 
     void mcdx$applyEnchantment(RegistryKey<Enchantment> enchantment, int level);
+
+    boolean mcdx$getNautilusBoolean();
+    void mcdx$setNautilusBoolean(boolean nautilusBoolean);
+
+    boolean mcdx$getShadowBarbBoolean();
+    void mcdx$setShadowBarbBoolean(boolean shadowBarbBoolean);
 }

@@ -1,11 +1,11 @@
 package dev.timefall.mcdx.configs;
 
 import dev.timefall.mcdx.ModConstants;
+import dev.timefall.mcdx.configs.sections.McdxLootConfigSection;
 import me.fzzyhmstrs.fzzy_config.api.ConfigApiJava;
 import me.fzzyhmstrs.fzzy_config.config.Config;
 import me.fzzyhmstrs.fzzy_config.validation.collection.ValidatedChoiceList;
 import me.fzzyhmstrs.fzzy_config.validation.collection.ValidatedList;
-import me.fzzyhmstrs.fzzy_config.validation.misc.ValidatedBoolean;
 import me.fzzyhmstrs.fzzy_config.validation.misc.ValidatedEnum;
 
 import java.util.Arrays;
@@ -18,8 +18,8 @@ public class McdxCoreConfig extends Config {
 		super(ModConstants.id("core_config"));
 	}
 
-	public ValidatedChoiceList<AoeExclusionType> aoeExclusions =  new ValidatedList<>(Arrays.stream(AoeExclusionType.values()).toList(), new ValidatedEnum<>(AoeExclusionType.SELF)).toChoiceList();
+	public ValidatedChoiceList<AoeExclusionType> aoeExclusions = new ValidatedList<>(Arrays.stream(AoeExclusionType.values()).toList(), new ValidatedEnum<>(AoeExclusionType.SELF)).toChoiceList();
 
-	public ValidatedBoolean aoeAffectsPlayers = new ValidatedBoolean();
+	public McdxLootConfigSection lootConfigSection = new McdxLootConfigSection();
 
 }

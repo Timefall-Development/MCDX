@@ -66,7 +66,8 @@ public abstract class AreaEffectCloudEntityMixin implements IExclusiveAOECloud {
 		if (thisOwner == null) return originalResult;
 		List<LivingEntity> filteredResult = new ArrayList<>();
 		for (LivingEntity entity : originalResult) {
-			if (AoeExclusionType.applies(thisOwner, entity, mcdx$exclusions)) filteredResult.add(entity);
+			if (AoeExclusionType.isExcluded(thisOwner, entity, mcdx$exclusions)) continue;
+			filteredResult.add(entity);
 		}
 		return filteredResult;
 	}

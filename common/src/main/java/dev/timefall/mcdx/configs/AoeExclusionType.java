@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import me.fzzyhmstrs.fzzy_config.util.EnumTranslatable;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.Tameable;
+import net.minecraft.entity.mob.AmbientEntity;
 import net.minecraft.entity.mob.Monster;
 import net.minecraft.entity.passive.AllayEntity;
 import net.minecraft.entity.passive.AnimalEntity;
@@ -24,7 +25,8 @@ public enum AoeExclusionType implements EnumTranslatable, StringIdentifiable {
 	ANY_PET("any_pet", (us, them) -> them instanceof Tameable pet && pet.getOwner() != null),
 	ANIMAL("animal", (us, them) -> them instanceof AnimalEntity),
 	VILLAGE("village", (us, them) -> them instanceof VillagerEntity || them instanceof IronGolemEntity || them instanceof AllayEntity),
-	HOSTILE("hostile", (us, them) -> them instanceof Monster);
+	HOSTILE("hostile", (us, them) -> them instanceof Monster),
+	AMBIENT("ambient", (us, them) -> them instanceof AmbientEntity);
 
 	private final String id;
 	private final BiPredicate<Entity, Entity> entityPredicate;
@@ -49,11 +51,11 @@ public enum AoeExclusionType implements EnumTranslatable, StringIdentifiable {
 		return id;
 	}
 
-	public static boolean applies(Entity us, Entity them, Collection<AoeExclusionType> exclusions) {
+	public static boolean isExcluded(Entity us, Entity them, Collection<AoeExclusionType> exclusions) {
 		for (AoeExclusionType exclusion : exclusions) {
-			if (exclusion.isExcluded(us, them)) return false;
+			if (exclusion.isExcluded(us, them)) return true;
 		}
-		return true;
+		return false;
 	}
 
 	public static final Codec<AoeExclusionType> CODEC = StringIdentifiable.createCodec(AoeExclusionType::values);

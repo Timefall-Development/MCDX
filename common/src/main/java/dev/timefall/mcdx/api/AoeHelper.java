@@ -41,7 +41,7 @@ public class AoeHelper {
 	}
 
 	public static boolean isAoeTarget(LivingEntity center, LivingEntity cause, LivingEntity foreignEntity, Collection<AoeExclusionType> exclusions) {
-		if (!AoeExclusionType.applies(cause, foreignEntity, exclusions)) return false;
+		if (AoeExclusionType.isExcluded(cause, foreignEntity, exclusions)) return false;
 		return foreignEntity.isAlive()
 				&& isAffectedByAoe(foreignEntity)
 				&& center.canSee(foreignEntity);
