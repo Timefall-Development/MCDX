@@ -55,6 +55,10 @@ allprojects {
     group = rootProject.maven_group
 
     repositories {
+        maven {
+            name = "FzzyMaven"
+            url = "https://maven.fzzyhmstrs.me/"
+        }
     }
 
     tasks.withType(JavaCompile).configureEach {

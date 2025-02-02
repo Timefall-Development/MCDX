@@ -22,6 +22,7 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 
+    modRuntimeOnly "me.fzzyhmstrs:fzzy_config:${rootProject.fzzy_config_version}"
 }
 
 publishMods {
