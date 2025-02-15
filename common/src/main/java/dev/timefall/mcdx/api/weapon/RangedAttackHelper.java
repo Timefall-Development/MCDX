@@ -1,11 +1,17 @@
-package dev.timefall.mcdx.api;
+package dev.timefall.mcdx.api.weapon;
 
+import dev.timefall.mcdx.api.AoeHelper;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ChargedProjectilesComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class RangedAttackHelper {
 
@@ -70,6 +76,14 @@ public class RangedAttackHelper {
             arrowVelocity = getVanillaArrowVelocity(stack, charge);
         }
         return arrowVelocity;
+    }
+
+    public static List<LivingEntity> mcdx$getSecondaryTargets(LivingEntity source, double radius) {
+        List<LivingEntity> nearbyEntities = AoeHelper.getEntitiesByConfig(source, (float) radius);
+        if (nearbyEntities.size() < 2) return Collections.emptyList();
+
+        nearbyEntities.sort(Comparator.comparingDouble(livingEntity -> livingEntity.squaredDistanceTo(source)));
+        return nearbyEntities;
     }
 
 }

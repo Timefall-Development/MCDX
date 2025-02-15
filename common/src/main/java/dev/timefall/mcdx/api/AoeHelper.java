@@ -36,15 +36,26 @@ public class AoeHelper {
 		);
 	}
 
+	public static List<LivingEntity> getEntitiesWithExclusions(LivingEntity centerEntity, float distance, Collection<AoeExclusionType> exclusions) {
+		return getEntitiesByPredicate(centerEntity, distance, targetEntity ->
+				isAoeTarget(centerEntity, targetEntity, exclusions)
+		);
+	}
+
+	public static List<LivingEntity> getEntitiesWithExclusions(LivingEntity centerEntity, LivingEntity causeEntity, float distance, Collection<AoeExclusionType> exclusions) {
+		return getEntitiesByPredicate(centerEntity, distance, targetEntity ->
+				isAoeTarget(centerEntity, causeEntity, targetEntity, exclusions)
+		);
+	}
+
 	public static boolean isAoeTarget(LivingEntity self, LivingEntity foreignEntity, Collection<AoeExclusionType> exclusions) {
 		return isAoeTarget(self, self, foreignEntity, exclusions);
 	}
 
 	public static boolean isAoeTarget(LivingEntity center, LivingEntity cause, LivingEntity foreignEntity, Collection<AoeExclusionType> exclusions) {
-		if (AoeExclusionType.isExcluded(cause, foreignEntity, exclusions)) return false;
+		if (AoeExclusionType.isExcluded(cause, center, foreignEntity, exclusions)) return false;
 		return foreignEntity.isAlive()
-				&& isAffectedByAoe(foreignEntity)
-				&& center.canSee(foreignEntity);
+				&& isAffectedByAoe(foreignEntity);
 	}
 
 	private static boolean isAffectedByAoe(LivingEntity entity) {

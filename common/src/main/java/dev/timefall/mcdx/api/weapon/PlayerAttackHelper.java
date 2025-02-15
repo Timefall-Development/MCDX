@@ -1,5 +1,7 @@
-package dev.timefall.mcdx.api;
+package dev.timefall.mcdx.api.weapon;
 
+import dev.timefall.mcdx.api.AbilityHelper;
+import dev.timefall.mcdx.api.CleanlinessHelper;
 import dev.timefall.mcdx.configs.CompatibilityFlags;
 import dev.timefall.mcdx.interfaces.IDualWielding;
 import dev.timefall.mcdx.interfaces.IOffhandAttack;

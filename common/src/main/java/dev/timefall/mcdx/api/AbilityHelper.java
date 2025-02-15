@@ -1,12 +1,47 @@
 package dev.timefall.mcdx.api;
 
+import dev.timefall.mcdx.configs.AoeExclusionType;
+import dev.timefall.mcdx.configs.McdxCoreConfig;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.util.math.Box;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class AbilityHelper {
 
-	public static void stealSpeedFromTarget(LivingEntity user, LivingEntity target, int amplifier) {
+	public static boolean canTarget(Entity attacker, Entity target, List<AoeExclusionType> exclusions) {
+		return !(AoeExclusionType.isExcluded(attacker, target, exclusions));
+	}
+
+	public static boolean canTargetEnemy(Entity attacker, Entity target) {
+		return !(AoeExclusionType.isExcluded(attacker, target, McdxCoreConfig.INSTANCE.allyExclusions));
+	}
+
+	public static boolean canTargetAlly(Entity attacker, Entity target) {
+		return AoeExclusionType.isExcluded(attacker, target, McdxCoreConfig.INSTANCE.allyExclusions);
+	}
+
+	public static List<LivingEntity> getPotentialTargets(LivingEntity attacker, float distance, List<AoeExclusionType> exclusions) {
+		return attacker.getEntityWorld().getEntitiesByClass(
+				LivingEntity.class,
+				new Box(attacker.getBlockPos()).expand(distance),
+				nearbyEntity -> canTarget(attacker, nearbyEntity, exclusions)
+		);
+	}
+
+	public static void applyToNearestTarget(LivingEntity attacker, float distance, List<AoeExclusionType> exclusions, Consumer<LivingEntity> nearestConsumer) {
+		List<LivingEntity> nearbyEntities = AbilityHelper.getPotentialTargets(attacker, distance, exclusions);
+		if (nearbyEntities.isEmpty()) return;
+		LivingEntity closestEntity = nearbyEntities.stream().min(Comparator.comparingDouble(e -> e.squaredDistanceTo(attacker))).get();
+		nearestConsumer.accept(closestEntity);
+	}
+
+	/*public static void stealSpeedFromTarget(LivingEntity user, LivingEntity target, int amplifier) {
 		stealSpeedFromTarget(user, target, amplifier, 80);
 	}
 
@@ -26,8 +61,5 @@ public class AbilityHelper {
 		StatusEffectInstance miningFatigue = new StatusEffectInstance(StatusEffects.MINING_FATIGUE, duration, amplifier);
 		target.addStatusEffect(freezing);
 		target.addStatusEffect(miningFatigue);
-	}
-
-
-
+	}*/
 }

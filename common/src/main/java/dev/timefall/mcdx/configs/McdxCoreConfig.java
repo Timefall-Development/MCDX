@@ -9,6 +9,7 @@ import me.fzzyhmstrs.fzzy_config.validation.collection.ValidatedList;
 import me.fzzyhmstrs.fzzy_config.validation.misc.ValidatedEnum;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class McdxCoreConfig extends Config {
 
@@ -18,7 +19,24 @@ public class McdxCoreConfig extends Config {
 		super(ModConstants.id("core_config"));
 	}
 
-	public ValidatedChoiceList<AoeExclusionType> aoeExclusions = new ValidatedList<>(Arrays.stream(AoeExclusionType.values()).toList(), new ValidatedEnum<>(AoeExclusionType.SELF)).toChoiceList();
+	public ValidatedChoiceList<AoeExclusionType> aoeExclusions = new ValidatedList<>(
+			List.of(
+					AoeExclusionType.SELF,
+					AoeExclusionType.OBSCURED
+			),
+			new ValidatedEnum<>(AoeExclusionType.SELF)
+	).toChoiceList(AoeExclusionType.TYPES);
+
+	public ValidatedChoiceList<AoeExclusionType> allyExclusions = new ValidatedList<>(
+			List.of(
+					AoeExclusionType.SELF,
+					AoeExclusionType.SELF_PET,
+					AoeExclusionType.VILLAGE,
+					AoeExclusionType.TEAMMATE,
+					AoeExclusionType.OBSCURED
+			),
+			new ValidatedEnum<>(AoeExclusionType.SELF)
+	).toChoiceList(AoeExclusionType.TYPES);
 
 	public McdxLootConfigSection lootConfigSection = new McdxLootConfigSection();
 
