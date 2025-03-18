@@ -4,6 +4,7 @@ import dev.timefall.mcdx.api.weapon.RangedAttackHelper;
 import dev.timefall.mcdx.configs.McdxCoreConfig;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ArrowItem;
@@ -13,10 +14,9 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 public class ProjectileEffectHelper {
 
@@ -32,60 +32,20 @@ public class ProjectileEffectHelper {
         }
     }
 
-    @SuppressWarnings("SuspiciousNameCombination")
-    public static void mcdx$setProjectileTowards(ProjectileEntity projectileEntity, double x, double y, double z, float inaccuracy) {
-        Vec3d vec3d = (new Vec3d(x, y, z))
-                .normalize()
-                .add(
-                        CleanlinessHelper.random.nextGaussian() * 0.0075 * inaccuracy,
-                        CleanlinessHelper.random.nextGaussian() * 0.0075 * inaccuracy,
-                        CleanlinessHelper.random.nextGaussian() * 0.0075 * inaccuracy);
-        projectileEntity.setVelocity(vec3d);
-        float f = MathHelper.sqrt((float)projectileEntity.squaredDistanceTo(vec3d));
-        projectileEntity.setYaw((float)(MathHelper.atan2(x, z) * (180.0 / Math.PI)));
-        projectileEntity.setPitch((float)(MathHelper.atan2(vec3d.y, f) * (180.0 / Math.PI)));
-        projectileEntity.prevYaw = projectileEntity.getYaw();
-        projectileEntity.prevPitch = projectileEntity.getPitch();
-    }
-
-    public static void mcdx$setProjectileTowards(ProjectileEntity projectileEntity, double x, double y, double z) {
-        Vec3d vec3d = new Vec3d(x, y, z).normalize();
-        projectileEntity.setVelocity(vec3d);
-        float f = MathHelper.sqrt((float) projectileEntity.squaredDistanceTo(vec3d));
-        //noinspection SuspiciousNameCombination
-        projectileEntity.setYaw((float) (MathHelper.atan2(vec3d.x, vec3d.z) * (180d / Math.PI)));
-        projectileEntity.setPitch((float) (MathHelper.atan2(vec3d.y, f) * (180d / Math.PI)));
-        projectileEntity.prevYaw = projectileEntity.getYaw();
-        projectileEntity.prevPitch = projectileEntity.getPitch();
-    }
-
-    private static void fireProjectileAtNearbyEnemies(ProjectileEntity projectileEntity, LivingEntity user, float distance) {
-        AbilityHelper.applyToNearestTarget(user, distance, McdxCoreConfig.INSTANCE.allyExclusions, nearestEntity -> {
-            double d = nearestEntity.getX() - projectileEntity.getX();
-            double e = nearestEntity.getBodyY(0.3333333333333333D) - projectileEntity.getY();
-            double f = nearestEntity.getZ() - projectileEntity.getZ();
-            double g = Math.sqrt(d * d + f * f);
-            projectileEntity.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, 1.5F, 1.0F);
-            mcdx$setProjectileTowards(projectileEntity, d, e, g, 0);
-            user.getWorld().spawnEntity(projectileEntity);
-        });
-    }
-
     public static void mcdx$spawnExtraArrows(LivingEntity owner, LivingEntity makeArrowFromMe, @Nullable ItemStack weapon, int numArrowsLimit, float distance, double bonusShotDamageMultiplier) {
-        List<LivingEntity> nearbyEntities = RangedAttackHelper.mcdx$getSecondaryTargets(makeArrowFromMe, distance);
-        for (int i = 0; i < Math.min(numArrowsLimit, nearbyEntities.size()); i++) {
-            PersistentProjectileEntity arrowEntity = mcdx$fireProjectileAtTarget(makeArrowFromMe, nearbyEntities.get(i), mcdx$createAbstractArrow(owner, weapon), 1, 0);
-            arrowEntity.setDamage(arrowEntity.getDamage() * bonusShotDamageMultiplier);
-            arrowEntity.setOwner(owner);
-            makeArrowFromMe.getWorld().spawnEntity(arrowEntity);
-        }
+        mcdx$fireProjectileAtNearestNEnemies(() -> {
+            PersistentProjectileEntity ae = mcdx$createAbstractArrow(owner, weapon);
+            ae.setDamage(ae.getDamage() * bonusShotDamageMultiplier);
+            ae.setOwner(owner);
+            return ae;
+        }, makeArrowFromMe, numArrowsLimit, distance, 1f, 0f);
     }
 
     public static PersistentProjectileEntity mcdx$createAbstractArrow(LivingEntity attacker, @Nullable ItemStack weapon) {
         return ((ArrowItem) Items.ARROW).createArrow(attacker.getEntityWorld(), new ItemStack(Items.ARROW), attacker, weapon);
     }
 
-    public static <T extends ProjectileEntity> T mcdx$fireProjectileAtTarget(Entity source, Entity target, T projectile, float power, float uncertainty, BiFunction<Double, Double, Double> yDirectionModifier) {
+    public static <T extends ProjectileEntity> T mcdx$pointProjectileAtTarget(Entity source, Entity target, T projectile, float power, float uncertainty, BiFunction<Double, Double, Double> yDirectionModifier) {
         //PersistentProjectileEntity projectile = mcdx$createAbstractArrow(source, weapon);
         // borrowed from AbstractSkeletonEntity
         double towardsX = target.getX() - source.getX();
@@ -99,8 +59,53 @@ public class ProjectileEffectHelper {
         return projectile;
     }
 
-    public static <T extends ProjectileEntity> T mcdx$fireProjectileAtTarget(Entity source, Entity target, T projectile, float power, float uncertainty) {
-        return mcdx$fireProjectileAtTarget(source, target, projectile, power, uncertainty, (x, z) -> MathHelper.hypot(x, z) * 0.2);
+    public static <T extends ProjectileEntity> T mcdx$pointProjectileAtTarget(Entity source, Entity target, T projectile, float power, float uncertainty) {
+        return mcdx$pointProjectileAtTarget(source, target, projectile, power, uncertainty, (x, z) -> MathHelper.hypot(x, z) * 0.2);
     }
 
+    private static void mcdx$fireProjectileAtNearestEnemy(ProjectileEntity projectileEntity, LivingEntity user, float searchRadius, float power, float uncertainty, BiFunction<Double, Double, Double> yDirectionModifier) {
+        AbilityHelper.applyToNearestTarget(user, searchRadius, McdxCoreConfig.INSTANCE.allyExclusions, nearestEntity -> {
+            mcdx$pointProjectileAtTarget(user, nearestEntity, projectileEntity, power, uncertainty, yDirectionModifier);
+            user.getWorld().spawnEntity(projectileEntity);
+        });
+    }
+
+    private static void mcdx$fireProjectileAtNearestEnemy(ProjectileEntity projectileEntity, LivingEntity user, float searchRadius, float power, float uncertainty) {
+        AbilityHelper.applyToNearestTarget(user, searchRadius, McdxCoreConfig.INSTANCE.allyExclusions, nearestEntity -> {
+            mcdx$pointProjectileAtTarget(user, nearestEntity, projectileEntity, power, uncertainty);
+            user.getWorld().spawnEntity(projectileEntity);
+        });
+    }
+
+    private static void mcdx$fireProjectileAtNearestNEnemies(Supplier<ProjectileEntity> projectileEntity, LivingEntity user, int maxTargets, float searchRadius, float power, float uncertainty, BiFunction<Double, Double, Double> yDirectionModifier) {
+        AbilityHelper.applyToNearestNTargets(user, maxTargets, searchRadius, McdxCoreConfig.INSTANCE.allyExclusions, nearestEntity -> {
+            ProjectileEntity projectile = projectileEntity.get();
+            mcdx$pointProjectileAtTarget(user, nearestEntity, projectile, power, uncertainty, yDirectionModifier);
+            user.getWorld().spawnEntity(projectile);
+        });
+    }
+
+    private static void mcdx$fireProjectileAtNearestNEnemies(Supplier<ProjectileEntity> projectileEntity, LivingEntity user, int maxTargets, float searchRadius, float power, float uncertainty) {
+        AbilityHelper.applyToNearestNTargets(user, maxTargets, searchRadius, McdxCoreConfig.INSTANCE.allyExclusions, nearestEntity -> {
+            ProjectileEntity projectile = projectileEntity.get();
+            mcdx$pointProjectileAtTarget(user, nearestEntity, projectile, power, uncertainty);
+            user.getWorld().spawnEntity(projectile);
+        });
+    }
+
+    private static void mcdx$fireProjectileAtRandomNEnemies(Supplier<ProjectileEntity> projectileEntity, LivingEntity user, int maxTargets, float searchRadius, float power, float uncertainty, BiFunction<Double, Double, Double> yDirectionModifier) {
+        AbilityHelper.applyToRandomNTargets(user, maxTargets, searchRadius, McdxCoreConfig.INSTANCE.allyExclusions, nearestEntity -> {
+            ProjectileEntity projectile = projectileEntity.get();
+            mcdx$pointProjectileAtTarget(user, nearestEntity, projectile, power, uncertainty, yDirectionModifier);
+            user.getWorld().spawnEntity(projectile);
+        });
+    }
+
+    private static void mcdx$fireProjectileAtRandomNEnemies(Supplier<ProjectileEntity> projectileEntity, LivingEntity user, int maxTargets, float searchRadius, float power, float uncertainty) {
+        AbilityHelper.applyToRandomNTargets(user, maxTargets, searchRadius, McdxCoreConfig.INSTANCE.allyExclusions, nearestEntity -> {
+            ProjectileEntity projectile = projectileEntity.get();
+            mcdx$pointProjectileAtTarget(user, nearestEntity, projectile, power, uncertainty);
+            user.getWorld().spawnEntity(projectile);
+        });
+    }
 }

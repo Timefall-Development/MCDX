@@ -1,6 +1,6 @@
 package dev.timefall.mcdx.api.weapon;
 
-import dev.timefall.mcdx.api.AoeHelper;
+import dev.timefall.mcdx.api.AOEHelper;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ChargedProjectilesComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -15,7 +15,7 @@ import java.util.List;
 
 public class RangedAttackHelper {
 
-    public static float getVanillaArrowVelocity(ItemStack stack, int charge){
+    /*public static float getVanillaArrowVelocity(ItemStack stack, int charge){
         float bowChargeTime = getVanillaBowChargeTime(stack);
         if (bowChargeTime <= 0){
             bowChargeTime = 1;
@@ -32,7 +32,7 @@ public class RangedAttackHelper {
         float bowChargeTime = 30 * (Math.max(20.0F - 5 * quickChargeLevel, 0));
         long lastFiredtime = (long)(McdwBowItem.getPullProgress(22) * (Math.max(20.0F - 5 * quickChargeLevel, 0)));
 
-        if (/*accelerateLevel > 0 &&*/ lastFiredtime > 0){
+        if (*//*accelerateLevel > 0 &&*//* lastFiredtime > 0){
             return Math.max(bowChargeTime - 5 * quickChargeLevel, 0);
         } else {
             return Math.max(20.0F - 5 * quickChargeLevel, 0);
@@ -46,7 +46,7 @@ public class RangedAttackHelper {
         float bowChargeTime = 15 * (Math.max(10.0F - 5 * quickChargeLevel, 0));
         long lastFiredtime = (long)(McdwShortbowItem.getPullProgress(11) * (Math.max(10.0F - 5 * quickChargeLevel, 0)));
 
-        if (/*accelerateLevel > 0 &&*/ lastFiredtime > 0){
+        if (*//*accelerateLevel > 0 &&*//* lastFiredtime > 0){
             return Math.max(bowChargeTime - 5 * quickChargeLevel, 0);
         } else {
             return Math.max(10.0F - 5 * quickChargeLevel, 0);
@@ -79,11 +79,11 @@ public class RangedAttackHelper {
     }
 
     public static List<LivingEntity> mcdx$getSecondaryTargets(LivingEntity source, double radius) {
-        List<LivingEntity> nearbyEntities = AoeHelper.getEntitiesByConfig(source, (float) radius);
+        List<LivingEntity> nearbyEntities = AOEHelper.getEntitiesByConfig(source, (float) radius);
         if (nearbyEntities.size() < 2) return Collections.emptyList();
 
         nearbyEntities.sort(Comparator.comparingDouble(livingEntity -> livingEntity.squaredDistanceTo(source)));
         return nearbyEntities;
-    }
+    }*/
 
 }

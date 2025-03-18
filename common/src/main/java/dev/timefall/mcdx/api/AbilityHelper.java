@@ -8,9 +8,12 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.math.Box;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class AbilityHelper {
 
@@ -23,6 +26,7 @@ public class AbilityHelper {
 	}
 
 	public static boolean canTargetAlly(Entity attacker, Entity target) {
+		//if an entity is excluded because of the ally exclusions, that means they ARE an ally
 		return AoeExclusionType.isExcluded(attacker, target, McdxCoreConfig.INSTANCE.allyExclusions);
 	}
 
@@ -35,10 +39,31 @@ public class AbilityHelper {
 	}
 
 	public static void applyToNearestTarget(LivingEntity attacker, float distance, List<AoeExclusionType> exclusions, Consumer<LivingEntity> nearestConsumer) {
+		List<LivingEntity> nearbyEntities = getPotentialTargets(attacker, distance, exclusions);
+		if (nearbyEntities.isEmpty()) return;
+		LivingEntity closestEntity = nearbyEntities.stream()
+				.min(Comparator.comparingDouble(e -> e.squaredDistanceTo(attacker)))
+				.get();
+		nearestConsumer.accept(closestEntity);
+	}
+
+	public static void applyToNearestNTargets(LivingEntity attacker, int maxTargets, float distance, List<AoeExclusionType> exclusions, Consumer<LivingEntity> nearestConsumer) {
 		List<LivingEntity> nearbyEntities = AbilityHelper.getPotentialTargets(attacker, distance, exclusions);
 		if (nearbyEntities.isEmpty()) return;
-		LivingEntity closestEntity = nearbyEntities.stream().min(Comparator.comparingDouble(e -> e.squaredDistanceTo(attacker))).get();
-		nearestConsumer.accept(closestEntity);
+		nearbyEntities.stream()
+				.sorted(Comparator.comparingDouble(e -> e.squaredDistanceTo(attacker)))
+				.limit(maxTargets)
+				.forEach(nearestConsumer);
+	}
+
+	public static void applyToRandomNTargets(LivingEntity attacker, int maxTargets, float distance, List<AoeExclusionType> exclusions, Consumer<LivingEntity> nearestConsumer) {
+		List<LivingEntity> nearbyEntities = AbilityHelper.getPotentialTargets(attacker, distance, exclusions);
+		if (nearbyEntities.isEmpty()) return;
+		List<LivingEntity> nearbyEntitiesCopy = new ArrayList<>(nearbyEntities);
+		Collections.shuffle(nearbyEntitiesCopy);
+		nearbyEntitiesCopy.stream()
+				.limit(maxTargets)
+				.forEach(nearestConsumer);
 	}
 
 	/*public static void stealSpeedFromTarget(LivingEntity user, LivingEntity target, int amplifier) {

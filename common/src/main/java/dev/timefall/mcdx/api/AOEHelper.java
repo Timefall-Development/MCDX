@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class AoeHelper {
+public class AOEHelper {
 
 	/** Returns targets of an AOE statusEffect from 'attacker' around 'center'. This includes 'center'. */
 	public static List<LivingEntity> getEntitiesByPredicate(LivingEntity centerEntity, float distance, Predicate<? super LivingEntity> predicate) {
