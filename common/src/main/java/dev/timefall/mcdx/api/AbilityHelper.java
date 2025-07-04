@@ -4,8 +4,6 @@ import dev.timefall.mcdx.configs.AoeExclusionType;
 import dev.timefall.mcdx.configs.McdxCoreConfig;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.math.Box;
 
 import java.util.ArrayList;
@@ -13,7 +11,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 public class AbilityHelper {
 
@@ -66,6 +63,22 @@ public class AbilityHelper {
 				.forEach(nearestConsumer);
 	}
 
+	public static void applyToTargets(LivingEntity attacker, float distance, List<AoeExclusionType> exclusions, Consumer<LivingEntity> abilityConsumer) {
+		List<LivingEntity> nearbyEntities = getPotentialTargets(attacker, distance, exclusions);
+		if (nearbyEntities.isEmpty()) return;
+		for (LivingEntity livingEntity : nearbyEntities) {
+			abilityConsumer.accept(livingEntity);
+		}
+	}
+
+	public static void applyToTargets(LivingEntity attacker, LivingEntity center, float distance, List<AoeExclusionType> exclusions, Consumer<LivingEntity> abilityConsumer) {
+		List<LivingEntity> nearbyEntities = AOEHelper.getEntitiesWithExclusions(center, attacker, distance, exclusions);
+		if (nearbyEntities.isEmpty()) return;
+		for (LivingEntity livingEntity : nearbyEntities) {
+			abilityConsumer.accept(livingEntity);
+		}
+	}
+
 	/*public static void stealSpeedFromTarget(LivingEntity user, LivingEntity target, int amplifier) {
 		stealSpeedFromTarget(user, target, amplifier, 80);
 	}
@@ -87,4 +100,8 @@ public class AbilityHelper {
 		target.addStatusEffect(freezing);
 		target.addStatusEffect(miningFatigue);
 	}*/
+
+	public static Consumer<LivingEntity> causeExplosion(LivingEntity user, float damageAmount) {
+		return (target) -> target.damage(target.getWorld().getDamageSources().explosion(target, user), damageAmount);
+	}
 }

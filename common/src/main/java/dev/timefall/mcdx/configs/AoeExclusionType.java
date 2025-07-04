@@ -11,16 +11,17 @@ import net.minecraft.entity.passive.AllayEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.IronGolemEntity;
 import net.minecraft.entity.passive.VillagerEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.StringIdentifiable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.BiPredicate;
 
 public enum AoeExclusionType implements EnumTranslatable, StringIdentifiable {
 	SELF("self", (us, center, them) -> them == us),
+	CREATIVE_PLAYER("creative_player", (us, center, them) -> them instanceof PlayerEntity player && player.isInCreativeMode()),
 	OTHER_PLAYER("other_player", (us, center, them) -> them.isPlayer()),
 	TEAMMATE("teammate", (us, center, them) -> them.isTeammate(us)),
 	SELF_PET("self_pet", (us, center, them) -> them instanceof Tameable pet && pet.getOwner() == us),
