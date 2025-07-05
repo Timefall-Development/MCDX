@@ -20,16 +20,34 @@ public class McdxCoreConfig extends Config {
 
 	// Illager Artifacts will, generally, be AOE Exclusive
 	public ValidatedChoiceList<AoeExclusionType> aoeExclusions = new ValidatedList<>(
+			AoeExclusionType.TYPES,
+			new ValidatedEnum<>(AoeExclusionType.SELF)
+	).toChoiceList(
 			List.of(
 					AoeExclusionType.SELF,
 					AoeExclusionType.CREATIVE_PLAYER,
 					AoeExclusionType.OBSCURED
-			),
+			)
+	);
+
+	// Illager Artifacts will, generally, be AOE Exclusive
+	public ValidatedChoiceList<AoeExclusionType> selfHitExclusions = new ValidatedList<>(
+			AoeExclusionType.TYPES,
 			new ValidatedEnum<>(AoeExclusionType.SELF)
-	).toChoiceList(AoeExclusionType.TYPES);
+	).toChoiceList(
+			List.of(
+					AoeExclusionType.SELF,
+					AoeExclusionType.CREATIVE_PLAYER,
+					AoeExclusionType.SELF_PET,
+					AoeExclusionType.OBSCURED
+			)
+	);
 
 	// Villager Artifacts will, generally, be Ally Exclusive
 	public ValidatedChoiceList<AoeExclusionType> allyExclusions = new ValidatedList<>(
+			AoeExclusionType.TYPES,
+			new ValidatedEnum<>(AoeExclusionType.SELF)
+	).toChoiceList(
 			List.of(
 					AoeExclusionType.SELF,
 					AoeExclusionType.CREATIVE_PLAYER,
@@ -37,18 +55,16 @@ public class McdxCoreConfig extends Config {
 					AoeExclusionType.VILLAGE,
 					AoeExclusionType.TEAMMATE,
 					AoeExclusionType.OBSCURED
-			),
-			new ValidatedEnum<>(AoeExclusionType.SELF)
-	).toChoiceList(AoeExclusionType.TYPES);
+	));
 
 	// If an AOE can affect self
 	public ValidatedChoiceList<AoeExclusionType> obscuredExclusions = new ValidatedList<>(
-			List.of(
-					AoeExclusionType.CREATIVE_PLAYER,
-					AoeExclusionType.OBSCURED
-			),
+			AoeExclusionType.TYPES,
 			new ValidatedEnum<>(AoeExclusionType.SELF)
-	).toChoiceList(AoeExclusionType.TYPES);
+	).toChoiceList(List.of(
+			AoeExclusionType.CREATIVE_PLAYER,
+			AoeExclusionType.OBSCURED
+	));
 
 	public McdxLootConfigSection lootConfigSection = new McdxLootConfigSection();
 

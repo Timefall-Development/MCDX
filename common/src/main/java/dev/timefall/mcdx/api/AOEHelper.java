@@ -17,6 +17,8 @@ import net.minecraft.world.World;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class AOEHelper {
@@ -71,7 +73,7 @@ public class AOEHelper {
 		return true;
 	}
 
-	///////////////////////
+	///////////////
 
 	public static void afflictNearbyEntities(LivingEntity user, float distance, StatusEffectInstance... statusEffectInstances) {
 		for (LivingEntity nearbyEntity : getEntitiesByConfig(user, distance)) {
@@ -86,7 +88,7 @@ public class AOEHelper {
 				&& attackingEntity.distanceTo(collateralEntity) < distanceToCollateral;
 	}
 
-	////////////////////
+	///////////////
 	public static void summonLightningBoltOnEntity(Entity target){
 		World world = target.getEntityWorld();
 		LightningEntity lightningEntity = EntityType.LIGHTNING_BOLT.create(world);
@@ -126,6 +128,15 @@ public class AOEHelper {
 			xRatio = (CleanlinessHelper.random.nextDouble() - CleanlinessHelper.random.nextDouble()) * 0.01D;
 		}
 		nearbyEntity.takeKnockback(0.4F * knockbackMultiplier, xRatio, zRatio);
+	}
+
+	///////////////
+	public static Consumer<LivingEntity> causeExplosion(LivingEntity user, float damageAmount) {
+		return causeExplosion(user, (t) -> damageAmount);
+	}
+
+	public static Consumer<LivingEntity> causeExplosion(LivingEntity user, Function<LivingEntity, Float> damageAmount) {
+		return (target) -> target.damage(target.getWorld().getDamageSources().explosion(target, user), damageAmount.apply(target));
 	}
 
 }

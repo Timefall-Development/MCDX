@@ -2,6 +2,7 @@ package dev.timefall.mcdx.api;
 
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKeys;
@@ -46,8 +47,12 @@ public class CleanlinessHelper {
 		mcdx$dropItem(le, new ItemStack(item, amount));
 	}
 
-	public static TagKey<Item> mcdw$getItemTagKey(String tag) {
+	public static TagKey<Item> mcdx$getItemTagKey(String tag) {
 		return TagKey.of(RegistryKeys.ITEM, Identifier.of(tag));
+	}
+
+	public static boolean mcdx$isCoolingDown(PlayerEntity player, Item item) {
+		return player.getItemCooldownManager().isCoolingDown(item);
 	}
 
 }
